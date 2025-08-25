@@ -12,9 +12,37 @@ const PORT = process.env.PORT || 5000;
 
 app.use(helmet());
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL, process.env.FRONTEND_URL?.replace('http://', 'https://')]
-    : ['http://localhost:5173', 'http://localhost:3000', 'https://localhost:5173'],
+  origin: function (origin, callback) {
+    console.log('CORS request from origin:', origin);
+    
+    // Allow requests with no origin (mobile apps, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = process.env.NODE_ENV === 'production' 
+      ? [
+          process.env.FRONTEND_URL,
+          process.env.FRONTEND_URL?.replace('http://', 'https://'),
+          'https://url-shortener-three-red.vercel.app'
+        ].filter(Boolean)
+      : ['http://localhost:5173', 'http://localhost:3000', 'https://localhost:5173'];
+    
+    console.log('Allowed origins:', allowedOrigins);
+    
+    // Allow any vercel.app domain in production
+    if (process.env.NODE_ENV === 'production' && origin.includes('.vercel.app')) {
+      console.log('Allowing Vercel domain:', origin);
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.includes(origin)) {
+      console.log('Origin allowed:', origin);
+      return callback(null, true);
+    }
+    
+    console.log('Origin blocked:', origin);
+    const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+    return callback(new Error(msg), false);
+  },
   credentials: true
 }));
 
