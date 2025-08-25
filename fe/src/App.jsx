@@ -55,9 +55,9 @@ function App() {
         setUrlHistory(prev => [newEntry, ...prev.slice(0, 9)]); // Keep only last 10
       }
     } catch (err) {
-      const errorMsg = err.response?.data?.error || 'Failed to shorten URL. Please check the format.';
+      console.error('Error details:', err);
+      const errorMsg = err.response?.data?.error || err.message || 'Failed to shorten URL. Please check the format.';
       setError(errorMsg);
-      console.error(err);
     } finally {
       setLoading(false);
     }
